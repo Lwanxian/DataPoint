@@ -1,6 +1,7 @@
 <template>
   <div ref="container" id="container">
-    <input type="file" accept="text/plain" @click="readFile" />
+    <!-- <input type="file" accept="text/plain" @click="readFile" /> -->
+    <input type="file" accept="text/plain" @change="loadTextFromFile" />
   </div>
 </template>
 
@@ -27,9 +28,27 @@ export default {
       material: null,
       axisHelper: null,
       controls: null,
+      pointX:null,
+      pointY:null,
+      pointZ:null,
+      Testresult:[],
+      x1arr:[],
+      y1arr:[],
+      z1arr:[],
     };
   },
   methods: {
+    // 读取文件不报错方法
+    loadTextFromFile: function (e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => this.$emit("load", this.dealNum(e.target.result));
+      reader.readAsText(file);
+    },
+    dealNum(item) {
+      return item.replace(/\r\n/g, " ").split(" ");
+    },
+
     init: function () {
       this.scene = new THREE.Scene();
       this.scene.background = new THREE.Color(0xf0f0f0);
@@ -61,20 +80,22 @@ export default {
       let matrix = new THREE.Matrix4();
       let color = new THREE.Color();
 
-      // matrix.setPosition(offset - 10, offset - 1, offset - 1);
-      // this.mesh.setMatrixAt(0, matrix);
-      // this.mesh.setColorAt(0, color);
+      matrix.setPosition(offset - 1, offset - 1, offset - 1);
+      this.mesh.setMatrixAt(1, matrix);
+      this.mesh.setColorAt(1, color);
 
-      for (let x = 0; x < this.amount; x++) {
-        for (let y = 0; y < this.amount; y++) {
-          for (let z = 0; z < this.amount; z++) {
-            matrix.setPosition(offset - 1, offset - 1, offset - 1);
-            this.mesh.setMatrixAt(i, matrix);
-            this.mesh.setColorAt(i, color);
-            i++;
-          }
-        }
-      }
+      // for (let x = 0; x < this.x1arr.length; x++) {
+      //   for (let y = 0; y < this.y1arr.length; y++) {
+      //     for (let z = 0; z < this.z1arr.length; z++) {
+      //       matrix.setPosition(this.pointX, this.pointY, this.pointZ);
+      //       this.mesh.setMatrixAt(i, matrix);
+      //       this.mesh.setColorAt(i, color);
+      //       i++;
+      //     }
+      //   }
+      // }
+      // new THREE.Vector3(this.pointX,this.pointY,this.pointZ)
+
       this.scene.add(this.mesh);
 
       let gui = new GUI();
@@ -103,41 +124,6 @@ export default {
       this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     },
 
-    readFile: function (e) {
-      var input = e.target;
-      var reader = new FileReader();
-      reader.readAsText(input.files[0]);
-      reader.onload = function () {
-        // console.log( reader.result );
-        let dataArr = reader.result.split(" ");
-        console.log(dataArr);
-        for (let m = 0; m < dataArr.length; m += 6) {
-          let x1 = dataArr[m];
-          console.log(x1);
-        }
-        for (let n = 1; n < dataArr.length; n += 6) {
-          let x2 = dataArr[n];
-          console.log(x2);
-        }
-        for (let h = 2; h < dataArr.length; h += 6) {
-          let y1 = dataArr[h];
-          console.log(y1);
-        }
-        for (let j = 3; j < dataArr.length; j += 6) {
-          let y2 = dataArr[j];
-          console.log(y2);
-        }
-        for (let s = 4; s < dataArr.length; s += 6) {
-          let z1 = dataArr[s];
-          console.log(z1);
-        }
-        for (let k = 5; k < dataArr.length;k += 6) {
-          let z2 = dataArr[k];
-          console.log(z2);
-        }
-      };
-    },
-
     initControls: function () {
       this.controls = new OrbitControls(this.camera, this.renderer.domElement); //创建控件对象（鼠标控制）
       this.controls.enableDamping = true; // 使动画循环使用时阻尼或自转 意思是否有惯性
@@ -163,11 +149,34 @@ export default {
       this.stats.update();
       this.render();
     },
+    test() {
+      const Data = `2535 2574 2230 2269 0 39
+2535 2574 2230 2269 40 79
+2535 2574 2230 2269 80 119
+2535 2574 2230 2269 120 159
+2535 2574 2230 2269 160 199`;
+      this.Testresult = this.dealNum(Data);
+
+      for (let m = 0; m < this.Testresult.length; m += 6) {
+        for (let n = 2; n < this.Testresult.length; n += 6) {
+          for (let k = 4; k < this.Testresult.length; k += 6) {
+            this.z1arr.push(this.Testresult[k]);
+          }
+          this.y1arr.push(this.Testresult[n]);
+        }
+        this.x1arr.push(this.Testresult[m]);
+      }
+      this.pointX = this.x1arr[0]
+      this.pointY = this.y1arr[0]
+      this.pointZ = this.z1arr[0]
+
+    },
   },
   mounted() {
     this.init();
     this.animate();
     this.initControls();
+    this.test();
   },
 };
 </script>
